@@ -1,11 +1,14 @@
 /**
  * 笔记详情页（只读模式）
- * 显示笔记内容并支持编辑和删除
+ * 使用 BlockNote 显示富文本内容
  */
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { BlockNoteView } from '@blocknote/mantine';
+import { useCreateBlockNote } from '@blocknote/react';
+import '@blocknote/core/fonts/inter.css';
+import '@blocknote/mantine/style.css';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -18,6 +21,9 @@ export default function NoteDetailPage() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 创建 BlockNote 编辑器（只读模式）
+  const editor = useCreateBlockNote();
 
   // 加载笔记
   useEffect(() => {
@@ -40,6 +46,16 @@ export default function NoteDetailPage() {
       if (fetchError) throw fetchError;
 
       setNote(data);
+
+      // 加载内容到 BlockNote 编辑器
+      if (data && data.content && editor) {
+        try {
+          const blocks = await editor.tryParseMarkdownToBlocks(data.content);
+          editor.replaceBlocks(editor.document, blocks);
+        } catch (err) {
+          console.error('解析 Markdown 失败:', err);
+        }
+      }
     } catch (err) {
       console.error('加载笔记失败:', err);
       setError('加载笔记失败');
@@ -170,9 +186,13 @@ export default function NoteDetailPage() {
         {/* 分隔线 */}
         <hr className="border-[#E5E5E5] my-6" />
 
-        {/* 笔记内容（Markdown 渲染） */}
-        <div className="prose prose-lg max-w-none">
-          <ReactMarkdown>{note.content || '暂无内容'}</ReactMarkdown>
+        {/* 笔记内容（BlockNote 只读模式） */}
+        <div className="min-h-[400px] prose prose-lg max-w-none">
+          <BlockNoteView
+            editor={editor}
+            editable={false}
+            theme="light"
+          />
         </div>
 
         {/* 底部元信息 */}

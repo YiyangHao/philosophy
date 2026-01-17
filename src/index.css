@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-sans text-text-primary bg-bg-main;
+    margin: 0;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  /* Custom utility classes can be added here */
+}

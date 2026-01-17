@@ -1,20 +1,24 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
-import NotesList from './pages/NotesList';
-import NoteEditor from './pages/NoteEditor';
-import Settings from './pages/Settings';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import NotesListPage from './pages/NotesListPage';
+import NoteDetailPage from './pages/NoteDetailPage';
+import NoteEditorPage from './pages/NoteEditorPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="notes" element={<NotesList />} />
-          <Route path="notes/:id" element={<NoteEditor />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
+        {/* 笔记列表页（首页） */}
+        <Route path="/" element={<Navigate to="/notes" replace />} />
+        <Route path="/notes" element={<NotesListPage />} />
+        
+        {/* 新建笔记 */}
+        <Route path="/notes/new" element={<NoteEditorPage />} />
+        
+        {/* 笔记详情页 */}
+        <Route path="/notes/:id" element={<NoteDetailPage />} />
+        
+        {/* 编辑笔记 */}
+        <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
       </Routes>
     </BrowserRouter>
   );

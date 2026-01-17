@@ -59,38 +59,41 @@ export default function NotesListPage() {
       {/* 主内容区 */}
       <main className="flex-1 pl-8 pr-8 py-6">
         {/* 顶部操作栏 */}
-        <form onSubmit={handleSearch} className="flex items-center gap-4 mb-8">
-          {/* 搜索框 */}
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="搜索关键词"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 px-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
-            />
-          </div>
+        <div className="flex items-center justify-between mb-8">
+          {/* 左侧：搜索框 + 搜索按钮 */}
+          <form onSubmit={handleSearch} className="flex gap-2 max-w-md">
+            {/* 搜索框 */}
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="搜索关键词"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-10 px-4 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+              />
+            </div>
 
-          {/* 搜索按钮 */}
-          <button
-            type="submit"
-            disabled={!searchQuery.trim()}
-            className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Search className="w-4 h-4" />
-            <span>搜索</span>
-          </button>
+            {/* 搜索按钮 */}
+            <button
+              type="submit"
+              disabled={!searchQuery.trim()}
+              className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Search className="w-4 h-4" />
+              <span>搜索</span>
+            </button>
+          </form>
 
-          {/* 新建笔记按钮 */}
+          {/* 右侧：新建笔记按钮 */}
           <button
             type="button"
             onClick={() => navigate('/notes/new')}
-            className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>新建笔记</span>
           </button>
-        </form>
+        </div>
 
         {/* 加载状态 */}
         {loading && (
@@ -105,7 +108,7 @@ export default function NotesListPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={loadNotes}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
             >
               重试
             </button>
@@ -118,7 +121,7 @@ export default function NotesListPage() {
             <p className="text-gray-500 mb-4">还没有笔记，创建第一篇吧！</p>
             <button
               onClick={() => navigate('/notes/new')}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
             >
               <Plus className="w-4 h-4 inline mr-2" />
               新建笔记

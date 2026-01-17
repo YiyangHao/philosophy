@@ -3,11 +3,10 @@
  * 显示所有笔记的卡片列表
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
+import Sidebar from '../components/layout/Sidebar';
 import NoteCard from '../components/NoteCard';
 import type { Note } from '../types/note';
 
@@ -53,86 +52,89 @@ export default function NotesListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* 头部 */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-4xl font-bold text-[#1C1C1E]">我的笔记</h1>
-          <Link to="/notes/new">
-            <Button className="bg-[#007AFF] hover:bg-[#0051D5] text-white">
-              <Plus className="w-5 h-5 mr-2" />
-              新建笔记
-            </Button>
-          </Link>
-        </div>
+    <div className="flex min-h-screen bg-white">
+      {/* 左侧边栏 */}
+      <Sidebar />
 
-        {/* 搜索框 */}
-        <form onSubmit={handleSearch} className="mb-8">
-          <div className="flex gap-2 max-w-2xl">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8E8E93]" />
-              <Input
-                type="text"
-                placeholder="搜索笔记内容（例如：个人同一性、死亡）"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 border-[#E5E5E5] focus:border-[#007AFF]"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="bg-[#007AFF] hover:bg-[#0051D5] text-white h-11"
-              disabled={!searchQuery.trim()}
-            >
-              <Search className="w-4 h-4 mr-2" />
-              搜索
-            </Button>
+      {/* 主内容区 */}
+      <main className="flex-1 pl-8 pr-8 py-6">
+        {/* 顶部操作栏 */}
+        <form onSubmit={handleSearch} className="flex items-center gap-4 mb-8">
+          {/* 搜索框 */}
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="搜索关键词"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-10 px-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+            />
           </div>
+
+          {/* 搜索按钮 */}
+          <button
+            type="submit"
+            disabled={!searchQuery.trim()}
+            className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Search className="w-4 h-4" />
+            <span>搜索</span>
+          </button>
+
+          {/* 新建笔记按钮 */}
+          <button
+            type="button"
+            onClick={() => navigate('/notes/new')}
+            className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>新建笔记</span>
+          </button>
         </form>
 
         {/* 加载状态 */}
         {loading && (
           <div className="text-center py-12">
-            <p className="text-[#8E8E93]">加载中...</p>
+            <p className="text-gray-500">加载中...</p>
           </div>
         )}
 
         {/* 错误状态 */}
         {error && (
           <div className="text-center py-12">
-            <p className="text-red-500">{error}</p>
-            <Button
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
               onClick={loadNotes}
-              variant="outline"
-              className="mt-4"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               重试
-            </Button>
+            </button>
           </div>
         )}
 
         {/* 空状态 */}
         {!loading && !error && notes.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[#8E8E93] mb-4">还没有笔记，创建第一篇吧！</p>
-            <Link to="/notes/new">
-              <Button className="bg-[#007AFF] hover:bg-[#0051D5] text-white">
-                <Plus className="w-5 h-5 mr-2" />
-                新建笔记
-              </Button>
-            </Link>
+            <p className="text-gray-500 mb-4">还没有笔记，创建第一篇吧！</p>
+            <button
+              onClick={() => navigate('/notes/new')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Plus className="w-4 h-4 inline mr-2" />
+              新建笔记
+            </button>
           </div>
         )}
 
-        {/* 笔记列表 - 自适应高度 Grid 布局，卡片高度对齐 */}
+        {/* 笔记网格 */}
         {!loading && !error && notes.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {notes.map((note) => (
               <NoteCard key={note.id} note={note} />
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

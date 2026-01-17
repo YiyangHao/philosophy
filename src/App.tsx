@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import NotesListPage from './pages/NotesListPage';
 import NoteDetailPage from './pages/NoteDetailPage';
 import NoteEditorPage from './pages/NoteEditorPage';
+import SearchResultsPage from './pages/SearchResultsPage';
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
         
         {/* 编辑笔记 */}
         <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
+        
+        {/* 搜索结果页 */}
+        <Route path="/search" element={<SearchResultsPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -10,6 +10,7 @@ import { useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { supabase } from '../lib/supabase';
+import { generateEmbedding } from '../services/aiService';
 import { Button } from '../components/ui/button';
 import NoteMetadataPanel from '../components/NoteMetadataPanel';
 import type { NoteFormData } from '../types/note';
@@ -108,6 +109,30 @@ export default function NoteEditorPage() {
 
         if (error) throw error;
 
+        // 删除旧向量
+        await supabase
+          .from('note_embeddings')
+          .delete()
+          .eq('note_id', id);
+
+        // 生成新向量（如果有内容）
+        if (markdown && markdown.trim()) {
+          try {
+            const embedding = await generateEmbedding(markdown);
+            await supabase
+              .from('note_embeddings')
+              .insert({
+                note_id: id,
+                content: markdown,
+                embedding: embedding,
+              });
+          } catch (embError) {
+            console.error('生成向量失败:', embError);
+            // 不阻止保存，只是警告
+            alert('笔记已保存，但向量生成失败。搜索功能可能受影响。');
+          }
+        }
+
         alert('保存成功！');
         navigate(`/notes/${id}`);
       } else {
@@ -119,6 +144,23 @@ export default function NoteEditorPage() {
           .single();
 
         if (error) throw error;
+
+        // 生成向量（如果有内容）
+        if (markdown && markdown.trim()) {
+          try {
+            const embedding = await generateEmbedding(markdown);
+            await supabase
+              .from('note_embeddings')
+              .insert({
+                note_id: data.id,
+                content: markdown,
+                embedding: embedding,
+              });
+          } catch (embError) {
+            console.error('生成向量失败:', embError);
+            alert('笔记已创建，但向量生成失败。搜索功能可能受影响。');
+          }
+        }
 
         alert('创建成功！');
         navigate(`/notes/${data.id}`);

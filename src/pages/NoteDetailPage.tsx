@@ -11,7 +11,6 @@ import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import type { Note } from '../types/note';
 
 export default function NoteDetailPage() {
@@ -153,47 +152,64 @@ export default function NoteDetailPage() {
       {/* 主内容区 */}
       <div className="max-w-4xl mx-auto px-8 py-8">
         {/* 标题 */}
-        <h1 className="text-4xl font-bold text-[#1C1C1E] mb-4">
+        <h1 className="text-4xl font-bold text-[#1C1C1E] mb-6">
           {note.title}
         </h1>
 
-        {/* 作者 - 支持多作者 */}
-        {note.authors && note.authors.length > 0 && (
-          <div className="mb-4">
-            <p className="text-sm text-[#8E8E93] mb-2">👤 作者</p>
-            <div className="flex flex-wrap gap-2">
-              {note.authors.map((author, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-[#E5F1FF] text-[#1F2937] rounded-md text-sm font-medium"
-                >
-                  {author}
-                </span>
-              ))}
+        {/* 元信息区域 - 左右布局 */}
+        <div className="space-y-3 mb-6">
+          {/* 作者 */}
+          {note.authors && note.authors.length > 0 && (
+            <div className="flex gap-4 items-center">
+              <span className="text-sm text-gray-600 font-medium w-16 flex-shrink-0">
+                作者
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {note.authors.map((author, index) => (
+                  <span
+                    key={index}
+                    className="inline-block px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded"
+                  >
+                    👤 {author}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 出版信息 */}
-        {(note.publication || note.year) && (
-          <p className="text-sm text-[#8E8E93] mb-4">
-            📚 {note.publication}
-            {note.publication && note.year && ', '}
-            {note.year}
-          </p>
-        )}
+          {/* 出版信息 */}
+          {(note.publication || note.year) && (
+            <div className="flex gap-4 items-center">
+              <span className="text-sm text-gray-600 font-medium w-16 flex-shrink-0">
+                出版物
+              </span>
+              <span className="inline-block px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded">
+                📚 {note.publication}
+                {note.publication && note.year && ', '}
+                {note.year}
+              </span>
+            </div>
+          )}
 
-        {/* 关键词 */}
-        {note.keywords && note.keywords.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            <span className="text-sm text-[#8E8E93]">🏷️</span>
-            {note.keywords.map((keyword, index) => (
-              <Badge key={index} variant="secondary">
-                #{keyword}
-              </Badge>
-            ))}
-          </div>
-        )}
+          {/* 关键词 */}
+          {note.keywords && note.keywords.length > 0 && (
+            <div className="flex gap-4 items-center">
+              <span className="text-sm text-gray-600 font-medium w-16 flex-shrink-0">
+                关键词
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {note.keywords.map((keyword, index) => (
+                  <span
+                    key={index}
+                    className="inline-block px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded"
+                  >
+                    🏷️ {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* 分隔线 */}
         <hr className="border-[#E5E5E5] my-6" />

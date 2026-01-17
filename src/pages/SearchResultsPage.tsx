@@ -299,9 +299,16 @@ export default function SearchResultsPage() {
 
                   {/* 作者信息 - 支持多作者 */}
                   {result.authors && result.authors.length > 0 && (
-                    <p className="text-sm text-gray-500 mb-3">
-                      👤 {result.authors.join(', ')}
-                    </p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {result.authors.map((author, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-block px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded"
+                        >
+                          👤 {author}
+                        </span>
+                      ))}
+                    </div>
                   )}
 
                   {/* 关键词标签 */}
@@ -310,7 +317,7 @@ export default function SearchResultsPage() {
                       {result.keywords.map((keyword, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                          className="inline-block px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded"
                         >
                           🏷️ {keyword}
                         </span>

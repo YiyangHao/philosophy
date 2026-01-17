@@ -73,7 +73,7 @@ export default function NotesListPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8E8E93]" />
               <Input
                 type="text"
-                placeholder="搜索笔记内容（例如：个人同一性、死亡）"
+                placeholder="搜索关键词"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-11 border-[#E5E5E5] focus:border-[#007AFF]"

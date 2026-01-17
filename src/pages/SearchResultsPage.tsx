@@ -52,8 +52,8 @@ export default function SearchResultsPage() {
         'search_notes_by_vector',
         {
           query_embedding: queryEmbedding,
-          match_threshold: 0.5, // 降低阈值以获取更多结果
-          match_count: 10,
+          match_threshold: 0.3,
+          match_count: 20, // 增加数量，因为可能有多个块
         }
       );
 
@@ -62,10 +62,31 @@ export default function SearchResultsPage() {
         throw searchError;
       }
 
-      console.log('✅ 搜索成功，找到', data?.length || 0, '个结果');
-      console.log('📊 搜索结果:', data);
+      console.log('✅ 搜索成功，找到', data?.length || 0, '个匹配块');
 
-      setResults(data || []);
+      // 3. 按 note_id 分组，每篇笔记只保留最相关的块
+      const groupedResults: Record<string, SearchResult> = {};
+      
+      if (data) {
+        data.forEach((result: SearchResult) => {
+          if (
+            !groupedResults[result.note_id] ||
+            groupedResults[result.note_id].similarity < result.similarity
+          ) {
+            groupedResults[result.note_id] = result;
+          }
+        });
+      }
+
+      // 4. 排序并限制结果数量
+      const topResults = Object.values(groupedResults)
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, 10);
+
+      console.log('📊 去重后结果:', topResults.length, '篇笔记');
+      console.log('📊 搜索结果:', topResults);
+
+      setResults(topResults);
     } catch (err) {
       console.error('❌ 搜索失败:', err);
       setError(err instanceof Error ? err.message : '搜索失败，请稍后重试');

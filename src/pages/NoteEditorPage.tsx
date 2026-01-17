@@ -10,7 +10,7 @@ import { useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { supabase } from '../lib/supabase';
-import { generateEmbedding } from '../services/aiService';
+import { generateEmbedding, chunkText } from '../services/aiService';
 import { Button } from '../components/ui/button';
 import NoteMetadataPanel from '../components/NoteMetadataPanel';
 import type { NoteFormData } from '../types/note';
@@ -109,35 +109,48 @@ export default function NoteEditorPage() {
 
         if (error) throw error;
 
+        console.log('✅ 笔记更新成功，ID:', id);
+
         // 删除旧向量
         await supabase
           .from('note_embeddings')
           .delete()
           .eq('note_id', id);
 
-        // 生成新向量（如果有内容）
+        console.log('🗑️ 旧向量已删除');
+
+        // 生成新向量（分块处理）
         if (markdown && markdown.trim()) {
           try {
             console.log('🔄 开始生成向量（编辑模式）...');
-            console.log('📝 内容长度:', markdown.length);
-            
-            const embedding = await generateEmbedding(markdown);
-            console.log('✅ 向量生成成功，维度:', embedding.length);
-            
-            const { error: embError } = await supabase
-              .from('note_embeddings')
-              .insert({
-                note_id: id,
-                content: markdown.substring(0, 1000), // 截取前1000字符作为片段
-                embedding: embedding,
-              });
-            
-            if (embError) {
-              console.error('❌ 向量保存失败:', embError);
-              throw embError;
+            console.log('📝 笔记总长度:', markdown.length, '字符');
+
+            // 将文本分块
+            const chunks = chunkText(markdown, 2000, 200);
+            console.log('📊 分块数量:', chunks.length);
+
+            // 为每个块生成向量并保存
+            for (let i = 0; i < chunks.length; i++) {
+              console.log(`🔄 处理第 ${i + 1}/${chunks.length} 块...`);
+
+              const embedding = await generateEmbedding(chunks[i]);
+
+              const { error: embeddingError } = await supabase
+                .from('note_embeddings')
+                .insert({
+                  note_id: id,
+                  content_chunk: chunks[i],
+                  embedding: embedding,
+                });
+
+              if (embeddingError) {
+                console.error(`❌ 第 ${i + 1} 块保存失败:`, embeddingError);
+              } else {
+                console.log(`✅ 第 ${i + 1} 块保存成功`);
+              }
             }
-            
-            console.log('✅ 向量保存成功！');
+
+            console.log('🎉 所有向量生成完成！');
           } catch (embError) {
             console.error('❌ 生成向量失败:', embError);
             // 不阻止保存，只是警告
@@ -157,30 +170,40 @@ export default function NoteEditorPage() {
 
         if (error) throw error;
 
-        // 生成向量（如果有内容）
+        console.log('✅ 笔记保存成功，ID:', data.id);
+
+        // 生成向量（分块处理）
         if (markdown && markdown.trim()) {
           try {
             console.log('🔄 开始生成向量（新建模式）...');
-            console.log('📝 内容长度:', markdown.length);
-            console.log('📋 笔记 ID:', data.id);
-            
-            const embedding = await generateEmbedding(markdown);
-            console.log('✅ 向量生成成功，维度:', embedding.length);
-            
-            const { error: embError } = await supabase
-              .from('note_embeddings')
-              .insert({
-                note_id: data.id,
-                content: markdown.substring(0, 1000), // 截取前1000字符作为片段
-                embedding: embedding,
-              });
-            
-            if (embError) {
-              console.error('❌ 向量保存失败:', embError);
-              throw embError;
+            console.log('📝 笔记总长度:', markdown.length, '字符');
+
+            // 将文本分块
+            const chunks = chunkText(markdown, 2000, 200);
+            console.log('📊 分块数量:', chunks.length);
+
+            // 为每个块生成向量并保存
+            for (let i = 0; i < chunks.length; i++) {
+              console.log(`🔄 处理第 ${i + 1}/${chunks.length} 块...`);
+
+              const embedding = await generateEmbedding(chunks[i]);
+
+              const { error: embeddingError } = await supabase
+                .from('note_embeddings')
+                .insert({
+                  note_id: data.id,
+                  content_chunk: chunks[i],
+                  embedding: embedding,
+                });
+
+              if (embeddingError) {
+                console.error(`❌ 第 ${i + 1} 块保存失败:`, embeddingError);
+              } else {
+                console.log(`✅ 第 ${i + 1} 块保存成功`);
+              }
             }
-            
-            console.log('✅ 向量保存成功！');
+
+            console.log('🎉 所有向量生成完成！');
           } catch (embError) {
             console.error('❌ 生成向量失败:', embError);
             alert('笔记已创建，但向量生成失败。搜索功能可能受影响。');

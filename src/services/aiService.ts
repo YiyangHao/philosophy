@@ -7,6 +7,50 @@ const ZHIPU_API_BASE = 'https://open.bigmodel.cn/api/paas/v4';
 const EMBEDDING_MODEL = 'embedding-2';
 
 /**
+ * 将长文本分块（修复版）
+ * @param text 原始文本
+ * @param chunkSize 每块大小（默认 2000 字符）
+ * @param overlap 块之间的重叠字符数（默认 200）
+ * @returns 文本块数组
+ */
+export function chunkText(
+  text: string,
+  chunkSize: number = 2000,
+  overlap: number = 200
+): string[] {
+  // 边界情况处理
+  if (!text || text.length === 0) {
+    return [];
+  }
+
+  if (text.length <= chunkSize) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  const step = chunkSize - overlap; // 每次前进的步长
+
+  // 使用 for 循环，避免无限循环
+  for (let start = 0; start < text.length; start += step) {
+    const end = Math.min(start + chunkSize, text.length);
+    const chunk = text.substring(start, end);
+
+    // 只添加非空块
+    if (chunk.trim().length > 0) {
+      chunks.push(chunk);
+    }
+
+    // 如果这个块已经包含了文本末尾，退出循环
+    if (end >= text.length) {
+      break;
+    }
+  }
+
+  console.log(`📊 文本分块完成: ${text.length} 字符 → ${chunks.length} 块`);
+  return chunks;
+}
+
+/**
  * 生成文本向量
  * @param text 要生成向量的文本
  * @returns 1024 维向量数组
@@ -26,10 +70,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     console.log('🔄 调用智谱 API 生成向量...');
     console.log('📝 文本长度:', text.length);
 
-    // 限制文本长度，避免超过 API 限制
-    const truncatedText = text.substring(0, 2000);
-    if (text.length > 2000) {
-      console.log('⚠️ 文本已截断至 2000 字符');
+    // 限制文本长度，避免超过 API 限制（保持 5000 字符限制）
+    const truncatedText = text.substring(0, 5000);
+    if (text.length > 5000) {
+      console.log('⚠️ 文本已截断至 5000 字符');
     }
 
     const response = await fetch(`${ZHIPU_API_BASE}/embeddings`, {

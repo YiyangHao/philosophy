@@ -24,7 +24,7 @@ BEGIN
     n.id AS note_id,
     n.title,
     n.author,
-    ne.content AS content_snippet,
+    ne.content_chunk AS content_snippet,
     1 - (ne.embedding <=> query_embedding) AS similarity
   FROM note_embeddings ne
   JOIN notes n ON ne.note_id = n.id

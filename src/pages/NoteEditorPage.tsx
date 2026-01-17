@@ -316,7 +316,7 @@ export default function NoteEditorPage() {
         />
 
         {/* BlockNote 编辑器 */}
-        <div className="min-h-[400px] prose prose-lg max-w-none">
+        <div className="min-h-[400px] prose prose-lg max-w-none leading-relaxed">
           <BlockNoteView
             editor={editor}
             theme="light"

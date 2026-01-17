@@ -5,7 +5,7 @@
 export interface Note {
   id: string;
   title: string;
-  author: string | null;
+  authors: string[] | null;  // 改为 authors 数组
   publication: string | null;
   year: number | null;
   keywords: string[];
@@ -16,7 +16,7 @@ export interface Note {
 
 export interface NoteFormData {
   title: string;
-  author: string;
+  authors: string[];  // 改为 authors 数组
   publication: string;
   year: number | null;
   keywords: string[];

@@ -21,7 +21,7 @@ export default function NoteEditorPage() {
   const isEditMode = !!id;
 
   const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
+  const [authors, setAuthors] = useState<string[]>([]);  // 改为 authors 数组
   const [publication, setPublication] = useState('');
   const [year, setYear] = useState<number | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -52,7 +52,7 @@ export default function NoteEditorPage() {
 
       if (data) {
         setTitle(data.title || '');
-        setAuthor(data.author || '');
+        setAuthors(data.authors || []);  // 读取 authors 数组
         setPublication(data.publication || '');
         setYear(data.year);
         setKeywords(data.keywords || []);
@@ -90,7 +90,7 @@ export default function NoteEditorPage() {
 
       const noteData: Partial<NoteFormData> = {
         title: title.trim(),
-        author: author.trim() || '',
+        authors: authors,  // 保存 authors 数组
         publication: publication.trim() || '',
         year,
         keywords,
@@ -305,11 +305,11 @@ export default function NoteEditorPage() {
 
         {/* 元数据面板 */}
         <NoteMetadataPanel
-          author={author}
+          authors={authors}  // 传递 authors 数组
           publication={publication}
           year={year}
           keywords={keywords}
-          onAuthorChange={setAuthor}
+          onAuthorsChange={setAuthors}  // 接收 authors 数组
           onPublicationChange={setPublication}
           onYearChange={setYear}
           onKeywordsChange={setKeywords}

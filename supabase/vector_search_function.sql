@@ -11,10 +11,10 @@ CREATE OR REPLACE FUNCTION search_notes_by_vector(
 )
 RETURNS TABLE (
   note_id UUID,
-  note_title TEXT,
-  note_author TEXT,
-  note_keywords TEXT[],
-  content_chunk TEXT,
+  title TEXT,
+  authors TEXT[],
+  keywords TEXT[],
+  content_snippet TEXT,
   similarity FLOAT
 )
 LANGUAGE plpgsql
@@ -23,10 +23,10 @@ BEGIN
   RETURN QUERY
   SELECT
     n.id AS note_id,
-    n.title AS note_title,
-    n.author AS note_author,
-    n.keywords AS note_keywords,
-    ne.content_chunk,
+    n.title,
+    n.authors,
+    n.keywords,
+    ne.content_chunk AS content_snippet,
     1 - (ne.embedding <=> query_embedding) AS similarity
   FROM note_embeddings ne
   JOIN notes n ON ne.note_id = n.id

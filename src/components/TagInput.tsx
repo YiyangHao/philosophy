@@ -31,13 +31,8 @@ export default function TagInput({
       return;
     }
 
-    // 作者类型：暂时只支持一个作者
-    if (type === 'author') {
-      onChange([trimmedTag]);
-    } else {
-      // 关键词类型：支持多个
-      onChange([...value, trimmedTag]);
-    }
+    // 添加到数组（作者和关键词都支持多个）
+    onChange([...value, trimmedTag]);
 
     setInputValue('');
   };
@@ -80,7 +75,7 @@ export default function TagInput({
         return {
           label: '作者',
           icon: '👤',
-          maxTags: 1, // 暂时只支持一个作者
+          maxTags: Infinity, // 支持多个作者
         };
       case 'keyword':
         return {
@@ -137,9 +132,7 @@ export default function TagInput({
 
       {/* 提示文本 */}
       <p className="text-xs text-gray-500">
-        {type === 'author' && value.length > 0
-          ? '暂时只支持一个作者'
-          : '按 Enter 或输入逗号添加，Backspace 删除'}
+        按 Enter 或输入逗号添加，Backspace 删除
       </p>
     </div>
   );

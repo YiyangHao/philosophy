@@ -8,22 +8,22 @@ import { Input } from './ui/input';
 import TagInput from './TagInput';
 
 interface NoteMetadataPanelProps {
-  author: string;
+  authors: string[];  // 改为 authors 数组
   publication: string;
   year: number | null;
   keywords: string[];
-  onAuthorChange: (value: string) => void;
+  onAuthorsChange: (value: string[]) => void;  // 改为接收数组
   onPublicationChange: (value: string) => void;
   onYearChange: (value: number | null) => void;
   onKeywordsChange: (keywords: string[]) => void;
 }
 
 export default function NoteMetadataPanel({
-  author,
+  authors,  // 改为 authors
   publication,
   year,
   keywords,
-  onAuthorChange,
+  onAuthorsChange,  // 改为 onAuthorsChange
   onPublicationChange,
   onYearChange,
   onKeywordsChange,
@@ -48,11 +48,11 @@ export default function NoteMetadataPanel({
       {/* 面板内容 */}
       {isOpen && (
         <div className="space-y-4">
-          {/* 作者 - 使用 TagInput */}
+          {/* 作者 - 使用 TagInput，支持多作者 */}
           <TagInput
             type="author"
-            value={author ? [author] : []}
-            onChange={(tags) => onAuthorChange(tags[0] || '')}
+            value={authors}  // 直接传递数组
+            onChange={onAuthorsChange}  // 直接接收数组
             placeholder="输入作者姓名..."
           />
 

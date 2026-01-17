@@ -157,9 +157,21 @@ export default function NoteDetailPage() {
           {note.title}
         </h1>
 
-        {/* 作者 */}
-        {note.author && (
-          <p className="text-lg text-[#8E8E93] mb-4">{note.author}</p>
+        {/* 作者 - 支持多作者 */}
+        {note.authors && note.authors.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm text-[#8E8E93] mb-2">👤 作者</p>
+            <div className="flex flex-wrap gap-2">
+              {note.authors.map((author, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-[#E5F1FF] text-[#1F2937] rounded-md text-sm font-medium"
+                >
+                  {author}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* 出版信息 */}

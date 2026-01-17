@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Tag, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { generateEmbedding } from '../services/aiService';
 import { Button } from '../components/ui/button';
@@ -13,7 +13,7 @@ import { highlightText } from '../utils/highlightText';
 interface SearchResult {
   note_id: string;
   title: string;
-  author: string | null;
+  authors: string[] | null;  // 改为 authors 数组
   keywords: string[] | null;
   content_snippet: string;
   similarity: number;
@@ -27,6 +27,8 @@ export default function SearchResultsPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addingKeywords, setAddingKeywords] = useState(false);
+  const [keywordsAdded, setKeywordsAdded] = useState(false);
 
   useEffect(() => {
     if (query) {
@@ -38,6 +40,7 @@ export default function SearchResultsPage() {
     try {
       setLoading(true);
       setError(null);
+      setKeywordsAdded(false);  // 重置状态
 
       console.log('🔍 开始搜索...');
       console.log('📝 搜索关键词:', searchQuery);
@@ -102,6 +105,80 @@ export default function SearchResultsPage() {
     }
   };
 
+  // 批量添加关键词到所有搜索结果的笔记
+  const handleBatchAddKeyword = async () => {
+    if (!query.trim() || results.length === 0) return;
+
+    try {
+      setAddingKeywords(true);
+
+      // 1. 提取所有唯一的 note_id
+      const uniqueNoteIds = [...new Set(results.map(r => r.note_id))];
+      console.log('📝 准备为', uniqueNoteIds.length, '篇笔记添加关键词:', query);
+
+      let successCount = 0;
+      let skipCount = 0;
+
+      // 2. 逐个更新笔记
+      for (const noteId of uniqueNoteIds) {
+        try {
+          // 获取当前笔记的关键词
+          const { data: note, error: fetchError } = await supabase
+            .from('notes')
+            .select('keywords')
+            .eq('id', noteId)
+            .single();
+
+          if (fetchError) {
+            console.error('❌ 获取笔记失败:', noteId, fetchError);
+            continue;
+          }
+
+          // 检查关键词是否已存在
+          const currentKeywords = note.keywords || [];
+          if (currentKeywords.includes(query.trim())) {
+            console.log('⏭️ 关键词已存在，跳过:', noteId);
+            skipCount++;
+            continue;
+          }
+
+          // 添加新关键词
+          const updatedKeywords = [...currentKeywords, query.trim()];
+          const { error: updateError } = await supabase
+            .from('notes')
+            .update({ keywords: updatedKeywords })
+            .eq('id', noteId);
+
+          if (updateError) {
+            console.error('❌ 更新笔记失败:', noteId, updateError);
+          } else {
+            console.log('✅ 成功添加关键词到笔记:', noteId);
+            successCount++;
+          }
+        } catch (err) {
+          console.error('❌ 处理笔记时出错:', noteId, err);
+        }
+      }
+
+      // 3. 显示结果
+      if (successCount > 0) {
+        setKeywordsAdded(true);
+        alert(`✅ 已为 ${successCount} 篇笔记添加关键词 "${query}"${skipCount > 0 ? `\n⏭️ ${skipCount} 篇笔记已有该关键词` : ''}`);
+      } else if (skipCount > 0) {
+        alert(`ℹ️ 所有笔记都已包含关键词 "${query}"`);
+      } else {
+        alert('❌ 未能添加关键词，请稍后重试');
+      }
+
+      console.log('🎉 批量添加完成！成功:', successCount, '跳过:', skipCount);
+    } catch (err) {
+      console.error('❌ 批量添加关键词失败:', err);
+      alert('添加关键词失败，请稍后重试');
+    } finally {
+      setAddingKeywords(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] p-8">
       <div className="max-w-4xl mx-auto">
@@ -157,16 +234,48 @@ export default function SearchResultsPage() {
         {/* 搜索结果 */}
         {!loading && !error && results.length > 0 && (
           <div className="space-y-4">
-            <p className="text-sm text-[#8E8E93] mb-4">
-              找到 {results.length} 个相关结果
-            </p>
+            {/* 结果统计和批量操作 */}
+            <div className="flex items-center justify-between mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div>
+                <p className="text-sm text-gray-700 mb-1">
+                  找到 <span className="font-semibold">{results.length}</span> 个结果，来自{' '}
+                  <span className="font-semibold">{[...new Set(results.map(r => r.note_id))].length}</span> 篇笔记
+                </p>
+              </div>
+              <Button
+                onClick={handleBatchAddKeyword}
+                disabled={addingKeywords || keywordsAdded}
+                className={`${
+                  keywordsAdded
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } text-white transition-colors`}
+              >
+                {addingKeywords ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    添加中...
+                  </>
+                ) : keywordsAdded ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    已添加
+                  </>
+                ) : (
+                  <>
+                    <Tag className="w-4 h-4 mr-2" />
+                    将 "{query}" 添加到所有笔记
+                  </>
+                )}
+              </Button>
+            </div>
 
             {results.map((result, index) => {
               // 调试日志：检查每个结果的字段
               console.log(`渲染第 ${index + 1} 个结果:`, {
                 title: result.title,
                 content_snippet: result.content_snippet,
-                author: result.author,
+                authors: result.authors,  // 改为 authors
                 keywords: result.keywords,
                 similarity: result.similarity
               });
@@ -188,10 +297,10 @@ export default function SearchResultsPage() {
                     )}
                   </div>
 
-                  {/* 作者信息 */}
-                  {result.author && (
+                  {/* 作者信息 - 支持多作者 */}
+                  {result.authors && result.authors.length > 0 && (
                     <p className="text-sm text-gray-500 mb-3">
-                      👤 {result.author}
+                      👤 {result.authors.join(', ')}
                     </p>
                   )}
 

@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { generateEmbedding } from '../services/aiService';
 import { Button } from '../components/ui/button';
+import { highlightText } from '../utils/highlightText';
 
 interface SearchResult {
   note_id: string;
@@ -47,18 +48,33 @@ export default function SearchResultsPage() {
       console.log('✅ 查询向量生成成功，维度:', queryEmbedding.length);
 
       // 2. 在 Supabase 中执行向量搜索
-      console.log('🔄 调用 Supabase RPC 函数: search_notes_by_vector');
+      console.log('==================== RPC 调用详情 ====================');
+      console.log('📊 传入参数：');
+      console.log('  query_embedding 维度:', queryEmbedding.length);
+      console.log('  query_embedding 前5个值:', queryEmbedding.slice(0, 5));
+      console.log('  match_threshold:', 0.0);
+      console.log('  match_count:', 50);
+      console.log('完整参数对象:', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.0,
+        match_count: 50
+      });
+
       const { data, error: searchError } = await supabase.rpc(
         'search_notes_by_vector',
         {
           query_embedding: queryEmbedding,
-          match_threshold: 0.3,
-          match_count: 20, // 增加数量，因为可能有多个块
+          match_threshold: 0.0,
+          match_count: 50,
         }
       );
 
-      // 🔍 详细日志：检查 RPC 返回的原始数据
-      console.log('🔍 RPC 原始返回数据:', data);
+      console.log('==================== RPC 返回结果 ====================');
+      console.log('✅ data:', data);
+      console.log('❌ error:', searchError);
+      console.log('data 类型:', typeof data);
+      console.log('data 是数组吗?', Array.isArray(data));
+      console.log('data 长度:', data?.length);
       console.log('🔍 返回数据的第一项:', data?.[0]);
       console.log('🔍 第一项的所有字段:', data?.[0] ? Object.keys(data[0]) : '无数据');
 
@@ -69,29 +85,15 @@ export default function SearchResultsPage() {
 
       console.log('✅ 搜索成功，找到', data?.length || 0, '个匹配块');
 
-      // 3. 按 note_id 分组，每篇笔记只保留最相关的块
-      const groupedResults: Record<string, SearchResult> = {};
-      
-      if (data) {
-        data.forEach((result: SearchResult) => {
-          if (
-            !groupedResults[result.note_id] ||
-            groupedResults[result.note_id].similarity < result.similarity
-          ) {
-            groupedResults[result.note_id] = result;
-          }
-        });
-      }
+      // 3. 直接使用所有结果，按相似度排序（不去重）
+      const sortedResults = (data || [])
+        .sort((a: SearchResult, b: SearchResult) => b.similarity - a.similarity)
+        .slice(0, 50); // 限制最多显示 50 个结果
 
-      // 4. 排序并限制结果数量
-      const topResults = Object.values(groupedResults)
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 10);
+      console.log('📊 最终搜索结果数量:', sortedResults.length);
+      console.log('📊 最终搜索结果:', sortedResults);
 
-      console.log('📊 去重后结果:', topResults.length, '篇笔记');
-      console.log('📊 搜索结果:', topResults);
-
-      setResults(topResults);
+      setResults(sortedResults);
     } catch (err) {
       console.error('❌ 搜索失败:', err);
       setError(err instanceof Error ? err.message : '搜索失败，请稍后重试');
@@ -161,13 +163,13 @@ export default function SearchResultsPage() {
 
             {results.map((result, index) => (
               <div
-                key={index}
+                key={`${result.note_id}-${index}`}
                 className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
               >
                 {/* 顶部：标题 + 相关度 */}
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
-                    {result.note_title || '无标题'}
+                    {highlightText(result.note_title || '无标题', query)}
                   </h3>
                   {result.similarity != null && (
                     <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
@@ -197,13 +199,16 @@ export default function SearchResultsPage() {
                   </div>
                 )}
 
-                {/* 匹配文本片段 - 完全安全的处理 */}
+                {/* 匹配文本片段 - 带高亮 */}
                 <div className="text-gray-700 text-sm mb-4">
                   {result.content_chunk && typeof result.content_chunk === 'string' && result.content_chunk.length > 0 ? (
                     <p className="line-clamp-3">
-                      {result.content_chunk.length > 150 
-                        ? result.content_chunk.slice(0, 150) + '...'
-                        : result.content_chunk}
+                      {highlightText(
+                        result.content_chunk.length > 200 
+                          ? result.content_chunk.slice(0, 200) + '...'
+                          : result.content_chunk,
+                        query
+                      )}
                     </p>
                   ) : (
                     <p className="text-gray-400 italic">暂无内容预览</p>

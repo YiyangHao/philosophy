@@ -31,20 +31,7 @@ export default function NoteMetadataPanel({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-4 mb-6">
-      {/* 面板头部 */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full text-left mb-4"
-      >
-        <span className="text-sm font-medium text-[#1C1C1E]">📚 元数据</span>
-        {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-[#8E8E93]" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-[#8E8E93]" />
-        )}
-      </button>
-
+    <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg px-4 py-3 mb-6">
       {/* 面板内容 */}
       {isOpen && (
         <div className="space-y-4">
@@ -88,6 +75,18 @@ export default function NoteMetadataPanel({
           />
         </div>
       )}
+
+      {/* 折叠按钮移到底部 */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-center w-full mt-3"
+      >
+        {isOpen ? (
+          <ChevronUp className="w-4 h-4 text-[#8E8E93]" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-[#8E8E93]" />
+        )}
+      </button>
     </div>
   );
 }

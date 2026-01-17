@@ -3,15 +3,15 @@
  * 支持新建和编辑笔记
  */
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Save, Trash2 } from 'lucide-react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { supabase } from '../lib/supabase';
 import { generateEmbedding, chunkText } from '../services/aiService';
-import { Button } from '../components/ui/button';
+import Sidebar from '../components/layout/Sidebar';
 import NoteMetadataPanel from '../components/NoteMetadataPanel';
 import type { NoteFormData } from '../types/note';
 
@@ -251,78 +251,81 @@ export default function NoteEditorPage() {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-[#8E8E93]">加载中...</p>
+      <div className="flex min-h-screen bg-white">
+        <Sidebar />
+        <main className="flex-1 pl-8 pr-8 py-6 flex items-center justify-center">
+          <p className="text-gray-500">加载中...</p>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* 顶部工具栏 */}
-      <div className="border-b border-[#E5E5E5] px-8 py-4 flex items-center justify-between sticky top-0 bg-white z-10">
-        <Link to="/notes">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            返回
-          </Button>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {isEditMode && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              disabled={loading}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              删除
-            </Button>
-          )}
-          <Button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-[#007AFF] hover:bg-[#0051D5]"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {loading ? '保存中...' : '保存'}
-          </Button>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-white">
+      {/* 左侧边栏 */}
+      <Sidebar />
 
       {/* 主内容区 */}
-      <div className="max-w-4xl mx-auto px-8 py-8">
-        {/* 标题输入框 */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="在这里输入标题..."
-          className="w-full text-4xl font-bold text-[#1C1C1E] border-none outline-none bg-transparent mb-6"
-          style={{ caretColor: '#007AFF' }}
-        />
+      <main className="flex-1 pl-8 pr-8 py-6">
+        <div className="max-w-5xl mx-auto px-12">
+          {/* 顶部按钮区域 */}
+          <div className="flex justify-end items-center gap-3 mb-8">
+            {isEditMode && (
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="h-10 px-4 flex items-center gap-2 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>删除</span>
+              </button>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="h-10 px-4 flex items-center gap-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              <span>{loading ? '保存中...' : '保存'}</span>
+            </button>
+          </div>
 
-        {/* 元数据面板 */}
-        <NoteMetadataPanel
-          authors={authors}  // 传递 authors 数组
-          publication={publication}
-          year={year}
-          keywords={keywords}
-          onAuthorsChange={setAuthors}  // 接收 authors 数组
-          onPublicationChange={setPublication}
-          onYearChange={setYear}
-          onKeywordsChange={setKeywords}
-        />
-
-        {/* BlockNote 编辑器 */}
-        <div className="min-h-[400px] prose prose-lg max-w-none leading-relaxed">
-          <BlockNoteView
-            editor={editor}
-            theme="light"
+          {/* 标题输入框 */}
+          <textarea
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="在这里输入标题..."
+            className="w-full text-4xl font-bold text-gray-900 border-none outline-none bg-transparent mb-6 resize-none overflow-hidden whitespace-normal break-words leading-tight"
+            style={{ caretColor: '#007AFF' }}
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = target.scrollHeight + 'px';
+            }}
           />
+
+          {/* 元数据面板 */}
+          <NoteMetadataPanel
+            authors={authors}
+            publication={publication}
+            year={year}
+            keywords={keywords}
+            onAuthorsChange={setAuthors}
+            onPublicationChange={setPublication}
+            onYearChange={setYear}
+            onKeywordsChange={setKeywords}
+          />
+
+          {/* BlockNote 编辑器 */}
+          <div className="min-h-[400px] prose prose-lg max-w-none leading-loose">
+            <BlockNoteView
+              editor={editor}
+              theme="light"
+            />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

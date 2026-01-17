@@ -176,15 +176,6 @@ export default function NoteDetailPage() {
 
           {/* 右侧：操作按钮组（查看模式） */}
           <div className="flex items-center gap-3">
-            {/* 编辑按钮 - 次级按钮样式 */}
-            <button
-              onClick={() => navigate(`/notes/${id}/edit`)}
-              className="h-10 px-4 flex items-center gap-2 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              <Edit className="w-4 h-4" />
-              <span>编辑</span>
-            </button>
-
             {/* 删除按钮 - 危险按钮样式 */}
             <button
               onClick={handleDelete}
@@ -192,6 +183,15 @@ export default function NoteDetailPage() {
             >
               <Trash2 className="w-4 h-4" />
               <span>删除</span>
+            </button>
+
+            {/* 编辑按钮 - 次级按钮样式 */}
+            <button
+              onClick={() => navigate(`/notes/${id}/edit`)}
+              className="h-10 px-4 flex items-center gap-2 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              <span>编辑</span>
             </button>
           </div>
         </div>

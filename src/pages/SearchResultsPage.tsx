@@ -3,24 +3,24 @@
  * 使用 AI 向量搜索显示相关笔记
  */
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, ExternalLink } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { generateEmbedding } from '../services/aiService';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
 
 interface SearchResult {
   note_id: string;
-  title: string;
-  author: string | null;
-  content_snippet: string;
+  note_title: string;
+  note_author: string | null;
+  note_keywords: string[] | null;
+  content_chunk: string;
   similarity: number;
 }
 
 export default function SearchResultsPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = searchParams.get('q') || '';
 
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -56,6 +56,11 @@ export default function SearchResultsPage() {
           match_count: 20, // 增加数量，因为可能有多个块
         }
       );
+
+      // 🔍 详细日志：检查 RPC 返回的原始数据
+      console.log('🔍 RPC 原始返回数据:', data);
+      console.log('🔍 返回数据的第一项:', data?.[0]);
+      console.log('🔍 第一项的所有字段:', data?.[0] ? Object.keys(data[0]) : '无数据');
 
       if (searchError) {
         console.error('❌ Supabase RPC 调用失败:', searchError);
@@ -93,16 +98,6 @@ export default function SearchResultsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // 将相似度转换为星星数量（0-5星）
-  const getSimilarityStars = (similarity: number) => {
-    return Math.round(similarity * 5);
-  };
-
-  // 格式化相似度为百分比
-  const formatSimilarity = (similarity: number) => {
-    return `${Math.round(similarity * 100)}%`;
   };
 
   return (
@@ -164,64 +159,65 @@ export default function SearchResultsPage() {
               找到 {results.length} 个相关结果
             </p>
 
-            {results.map((result) => (
-              <Card
-                key={result.note_id}
-                className="hover:shadow-md transition-shadow"
+            {results.map((result, index) => (
+              <div
+                key={index}
+                className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl text-[#1C1C1E] mb-2">
-                        {result.title}
-                      </CardTitle>
-                      {result.author && (
-                        <p className="text-sm text-[#8E8E93]">{result.author}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 ml-4">
-                      {/* 相似度显示 */}
-                      <Badge
-                        variant="secondary"
-                        className="bg-[#FFB800] text-white hover:bg-[#FFB800]"
-                      >
-                        {formatSimilarity(result.similarity)}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {/* 内容片段 */}
-                  <p className="text-sm text-[#8E8E93] mb-4 line-clamp-3">
-                    {result.content_snippet}
+                {/* 顶部：标题 + 相关度 */}
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
+                    {result.note_title || '无标题'}
+                  </h3>
+                  {result.similarity != null && (
+                    <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                      {Math.round(result.similarity * 100)}%
+                    </span>
+                  )}
+                </div>
+
+                {/* 作者信息 */}
+                {result.note_author && (
+                  <p className="text-sm text-gray-500 mb-3">
+                    👤 {result.note_author}
                   </p>
+                )}
 
-                  {/* 相似度星星 */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs text-[#8E8E93]">相关度：</span>
-                    <div className="flex gap-1">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <Star
-                          key={index}
-                          className={`w-4 h-4 ${
-                            index < getSimilarityStars(result.similarity)
-                              ? 'fill-[#FFB800] text-[#FFB800]'
-                              : 'text-[#E5E5E5]'
-                          }`}
-                        />
-                      ))}
-                    </div>
+                {/* 关键词标签 */}
+                {result.note_keywords && Array.isArray(result.note_keywords) && result.note_keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {result.note_keywords.map((keyword, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                      >
+                        🏷️ {keyword}
+                      </span>
+                    ))}
                   </div>
+                )}
 
-                  {/* 查看完整笔记按钮 */}
-                  <Link to={`/notes/${result.note_id}`}>
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      查看完整笔记
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+                {/* 匹配文本片段 - 完全安全的处理 */}
+                <div className="text-gray-700 text-sm mb-4">
+                  {result.content_chunk && typeof result.content_chunk === 'string' && result.content_chunk.length > 0 ? (
+                    <p className="line-clamp-3">
+                      {result.content_chunk.length > 150 
+                        ? result.content_chunk.slice(0, 150) + '...'
+                        : result.content_chunk}
+                    </p>
+                  ) : (
+                    <p className="text-gray-400 italic">暂无内容预览</p>
+                  )}
+                </div>
+
+                {/* 查看完整笔记按钮 */}
+                <button
+                  onClick={() => navigate(`/notes/${result.note_id}`)}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
+                >
+                  查看完整笔记 <span>→</span>
+                </button>
+              </div>
             ))}
           </div>
         )}

@@ -13,6 +13,7 @@ RETURNS TABLE (
   note_id UUID,
   title TEXT,
   author TEXT,
+  keywords TEXT[],
   content_snippet TEXT,
   similarity FLOAT
 )
@@ -24,6 +25,7 @@ BEGIN
     n.id AS note_id,
     n.title,
     n.author,
+    n.keywords,
     ne.content_chunk AS content_snippet,
     1 - (ne.embedding <=> query_embedding) AS similarity
   FROM note_embeddings ne

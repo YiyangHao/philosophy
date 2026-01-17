@@ -12,10 +12,10 @@ import { highlightText } from '../utils/highlightText';
 
 interface SearchResult {
   note_id: string;
-  note_title: string;
-  note_author: string | null;
-  note_keywords: string[] | null;
-  content_chunk: string;
+  title: string;
+  author: string | null;
+  keywords: string[] | null;
+  content_snippet: string;
   similarity: number;
 }
 
@@ -161,69 +161,80 @@ export default function SearchResultsPage() {
               找到 {results.length} 个相关结果
             </p>
 
-            {results.map((result, index) => (
-              <div
-                key={`${result.note_id}-${index}`}
-                className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
-              >
-                {/* 顶部：标题 + 相关度 */}
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
-                    {highlightText(result.note_title || '无标题', query)}
-                  </h3>
-                  {result.similarity != null && (
-                    <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                      {Math.round(result.similarity * 100)}%
-                    </span>
-                  )}
-                </div>
+            {results.map((result, index) => {
+              // 调试日志：检查每个结果的字段
+              console.log(`渲染第 ${index + 1} 个结果:`, {
+                title: result.title,
+                content_snippet: result.content_snippet,
+                author: result.author,
+                keywords: result.keywords,
+                similarity: result.similarity
+              });
 
-                {/* 作者信息 */}
-                {result.note_author && (
-                  <p className="text-sm text-gray-500 mb-3">
-                    👤 {result.note_author}
-                  </p>
-                )}
-
-                {/* 关键词标签 */}
-                {result.note_keywords && Array.isArray(result.note_keywords) && result.note_keywords.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {result.note_keywords.map((keyword, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
-                      >
-                        🏷️ {keyword}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* 匹配文本片段 - 带高亮 */}
-                <div className="text-gray-700 text-sm mb-4">
-                  {result.content_chunk && typeof result.content_chunk === 'string' && result.content_chunk.length > 0 ? (
-                    <p className="line-clamp-3">
-                      {highlightText(
-                        result.content_chunk.length > 200 
-                          ? result.content_chunk.slice(0, 200) + '...'
-                          : result.content_chunk,
-                        query
-                      )}
-                    </p>
-                  ) : (
-                    <p className="text-gray-400 italic">暂无内容预览</p>
-                  )}
-                </div>
-
-                {/* 查看完整笔记按钮 */}
-                <button
-                  onClick={() => navigate(`/notes/${result.note_id}`)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
+              return (
+                <div
+                  key={`${result.note_id}-${index}`}
+                  className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
                 >
-                  查看完整笔记 <span>→</span>
-                </button>
-              </div>
-            ))}
+                  {/* 顶部：标题 + 相关度 */}
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
+                      {highlightText(result.title || '无标题', query)}
+                    </h3>
+                    {result.similarity != null && (
+                      <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                        {Math.round(result.similarity * 100)}%
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 作者信息 */}
+                  {result.author && (
+                    <p className="text-sm text-gray-500 mb-3">
+                      👤 {result.author}
+                    </p>
+                  )}
+
+                  {/* 关键词标签 */}
+                  {result.keywords && Array.isArray(result.keywords) && result.keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {result.keywords.map((keyword, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                        >
+                          🏷️ {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 匹配文本片段 - 带高亮 */}
+                  <div className="text-gray-700 text-sm mb-4">
+                    {result.content_snippet && typeof result.content_snippet === 'string' && result.content_snippet.length > 0 ? (
+                      <p className="line-clamp-3">
+                        {highlightText(
+                          result.content_snippet.length > 200 
+                            ? result.content_snippet.slice(0, 200) + '...'
+                            : result.content_snippet,
+                          query
+                        )}
+                      </p>
+                    ) : (
+                      <p className="text-gray-400 italic">暂无内容预览</p>
+                    )}
+                  </div>
+
+                  {/* 查看完整笔记按钮 */}
+                  <button
+                    onClick={() => navigate(`/notes/${result.note_id}`)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
+                  >
+                    查看完整笔记 <span>→</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

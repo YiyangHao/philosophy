@@ -61,7 +61,7 @@ export default function NotesListPage() {
         {/* 顶部操作栏 */}
         <div className="flex items-center justify-between mb-8">
           {/* 左侧：搜索框 + 搜索按钮 */}
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-md">
+          <form onSubmit={handleSearch} className="flex gap-4 max-w-xl">
             {/* 搜索框 */}
             <div className="flex-1">
               <input

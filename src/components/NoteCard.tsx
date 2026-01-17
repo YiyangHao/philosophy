@@ -12,7 +12,7 @@ interface NoteCardProps {
 export default function NoteCard({ note }: NoteCardProps) {
   return (
     <Link to={`/notes/${note.id}`} className="h-full">
-      <div className="h-full flex flex-col gap-3 p-5 border border-gray-200 rounded-xl bg-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+      <div className="h-full flex flex-col gap-3 p-5 border-2 border-transparent rounded-xl bg-white shadow-card-custom transition-all duration-200 hover:border-blue-500 hover:-translate-y-0.5 cursor-pointer">
         {/* 标题 - 完整显示，不截断 */}
         <h3 className="text-lg font-semibold text-gray-900 leading-relaxed break-words">
           {note.title || '暂无标题'}

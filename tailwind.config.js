@@ -64,6 +64,9 @@ export default {
           gray: '#8E8E93',
         },
       },
+      boxShadow: {
+        'card-custom': '0 29px 18px rgba(20, 18, 103, 0.03), 0 2px 20px rgba(23, 58, 110, 0.06)',
+      },
       fontFamily: {
         // Apple system fonts
         sans: [

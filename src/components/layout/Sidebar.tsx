@@ -26,7 +26,7 @@ export default function Sidebar() {
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
               isNotesActive
                 ? 'bg-primary/10 text-primary font-medium'
-                : 'text-text-secondary hover:bg-bg-main hover:text-text-primary'
+                : 'text-text-secondary hover:text-blue-500 hover:font-medium'
             }`}
           >
             <FileText className="w-5 h-5" />

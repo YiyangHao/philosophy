@@ -124,9 +124,9 @@ export default function NotesListPage() {
           </div>
         )}
 
-        {/* 笔记列表 */}
+        {/* 笔记列表 - 自适应高度 Grid 布局，卡片高度对齐 */}
         {!loading && !error && notes.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
             {notes.map((note) => (
               <NoteCard key={note.id} note={note} />
             ))}

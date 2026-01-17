@@ -38,10 +38,16 @@ export default function SearchResultsPage() {
       setLoading(true);
       setError(null);
 
+      console.log('🔍 开始搜索...');
+      console.log('📝 搜索关键词:', searchQuery);
+
       // 1. 将搜索词转成向量
+      console.log('🔄 生成查询向量...');
       const queryEmbedding = await generateEmbedding(searchQuery);
+      console.log('✅ 查询向量生成成功，维度:', queryEmbedding.length);
 
       // 2. 在 Supabase 中执行向量搜索
+      console.log('🔄 调用 Supabase RPC 函数: search_notes_by_vector');
       const { data, error: searchError } = await supabase.rpc(
         'search_notes_by_vector',
         {
@@ -51,11 +57,17 @@ export default function SearchResultsPage() {
         }
       );
 
-      if (searchError) throw searchError;
+      if (searchError) {
+        console.error('❌ Supabase RPC 调用失败:', searchError);
+        throw searchError;
+      }
+
+      console.log('✅ 搜索成功，找到', data?.length || 0, '个结果');
+      console.log('📊 搜索结果:', data);
 
       setResults(data || []);
     } catch (err) {
-      console.error('搜索失败:', err);
+      console.error('❌ 搜索失败:', err);
       setError(err instanceof Error ? err.message : '搜索失败，请稍后重试');
     } finally {
       setLoading(false);

@@ -45,7 +45,7 @@ VITE_ZHIPU_API_KEY=your_zhipu_api_key_here
 SQL 内容：
 ```sql
 CREATE OR REPLACE FUNCTION search_notes_by_vector(
-  query_embedding VECTOR(1536),
+  query_embedding VECTOR(1024),
   match_threshold FLOAT DEFAULT 0.7,
   match_count INT DEFAULT 10
 )
@@ -191,7 +191,7 @@ const response = await fetch('https://open.bigmodel.cn/api/paas/v4/embeddings', 
 });
 
 const data = await response.json();
-return data.data[0].embedding; // 1536维向量
+return data.data[0].embedding; // 1024维向量
 ```
 
 ## 📂 新增文件
@@ -228,8 +228,8 @@ supabase/
 - 可根据实际效果调整
 
 ### 4. 向量维度
-- 智谱 embedding-2 模型：1536 维
-- 必须与数据库 `VECTOR(1536)` 匹配
+- 智谱 embedding-2 模型：1024 维
+- 必须与数据库 `VECTOR(1024)` 匹配
 - 不要修改维度
 
 ## ❓ 常见问题

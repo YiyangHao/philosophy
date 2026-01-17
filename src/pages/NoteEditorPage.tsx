@@ -118,16 +118,28 @@ export default function NoteEditorPage() {
         // 生成新向量（如果有内容）
         if (markdown && markdown.trim()) {
           try {
+            console.log('🔄 开始生成向量（编辑模式）...');
+            console.log('📝 内容长度:', markdown.length);
+            
             const embedding = await generateEmbedding(markdown);
-            await supabase
+            console.log('✅ 向量生成成功，维度:', embedding.length);
+            
+            const { error: embError } = await supabase
               .from('note_embeddings')
               .insert({
                 note_id: id,
-                content: markdown,
+                content: markdown.substring(0, 1000), // 截取前1000字符作为片段
                 embedding: embedding,
               });
+            
+            if (embError) {
+              console.error('❌ 向量保存失败:', embError);
+              throw embError;
+            }
+            
+            console.log('✅ 向量保存成功！');
           } catch (embError) {
-            console.error('生成向量失败:', embError);
+            console.error('❌ 生成向量失败:', embError);
             // 不阻止保存，只是警告
             alert('笔记已保存，但向量生成失败。搜索功能可能受影响。');
           }
@@ -148,16 +160,29 @@ export default function NoteEditorPage() {
         // 生成向量（如果有内容）
         if (markdown && markdown.trim()) {
           try {
+            console.log('🔄 开始生成向量（新建模式）...');
+            console.log('📝 内容长度:', markdown.length);
+            console.log('📋 笔记 ID:', data.id);
+            
             const embedding = await generateEmbedding(markdown);
-            await supabase
+            console.log('✅ 向量生成成功，维度:', embedding.length);
+            
+            const { error: embError } = await supabase
               .from('note_embeddings')
               .insert({
                 note_id: data.id,
-                content: markdown,
+                content: markdown.substring(0, 1000), // 截取前1000字符作为片段
                 embedding: embedding,
               });
+            
+            if (embError) {
+              console.error('❌ 向量保存失败:', embError);
+              throw embError;
+            }
+            
+            console.log('✅ 向量保存成功！');
           } catch (embError) {
-            console.error('生成向量失败:', embError);
+            console.error('❌ 生成向量失败:', embError);
             alert('笔记已创建，但向量生成失败。搜索功能可能受影响。');
           }
         }

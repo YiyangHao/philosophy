@@ -9,7 +9,7 @@ const EMBEDDING_MODEL = 'embedding-2';
 /**
  * 生成文本向量
  * @param text 要生成向量的文本
- * @returns 1536 维向量数组
+ * @returns 1024 维向量数组
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   const apiKey = import.meta.env.VITE_ZHIPU_API_KEY;
@@ -23,6 +23,15 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   try {
+    console.log('🔄 调用智谱 API 生成向量...');
+    console.log('📝 文本长度:', text.length);
+
+    // 限制文本长度，避免超过 API 限制
+    const truncatedText = text.substring(0, 2000);
+    if (text.length > 2000) {
+      console.log('⚠️ 文本已截断至 2000 字符');
+    }
+
     const response = await fetch(`${ZHIPU_API_BASE}/embeddings`, {
       method: 'POST',
       headers: {
@@ -31,12 +40,13 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       },
       body: JSON.stringify({
         model: EMBEDDING_MODEL,
-        input: text,
+        input: truncatedText,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('❌ 智谱 API 错误:', errorData);
       throw new Error(
         `智谱 API 调用失败: ${response.status} ${response.statusText}. ${JSON.stringify(errorData)}`
       );
@@ -45,12 +55,24 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     const data = await response.json();
 
     if (!data.data || !data.data[0] || !data.data[0].embedding) {
+      console.error('❌ 智谱 API 返回数据格式错误:', data);
       throw new Error('智谱 API 返回数据格式错误');
     }
 
-    return data.data[0].embedding;
+    const embedding = data.data[0].embedding;
+
+    // 验证向量维度（智谱 embedding-2 模型返回 1024 维）
+    if (embedding.length !== 1024) {
+      console.error('❌ 向量维度错误! 期望: 1024, 实际:', embedding.length);
+      throw new Error(`向量维度应该是 1024，实际是 ${embedding.length}`);
+    }
+
+    console.log('✅ 智谱 API 调用成功');
+    console.log('📊 向量维度: 1024 ✅');
+
+    return embedding;
   } catch (error) {
-    console.error('生成向量失败:', error);
+    console.error('❌ 生成向量失败:', error);
     throw error;
   }
 }

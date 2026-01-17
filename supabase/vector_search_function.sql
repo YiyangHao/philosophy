@@ -5,7 +5,7 @@
 
 -- 创建向量搜索函数
 CREATE OR REPLACE FUNCTION search_notes_by_vector(
-  query_embedding VECTOR(1536),
+  query_embedding VECTOR(1024),
   match_threshold FLOAT DEFAULT 0.7,
   match_count INT DEFAULT 10
 )
@@ -44,7 +44,7 @@ $$;
 --
 -- 前端调用示例：
 -- const { data } = await supabase.rpc('search_notes_by_vector', {
---   query_embedding: [0.1, 0.2, ...],  // 1536维向量
+--   query_embedding: [0.1, 0.2, ...],  // 1024维向量
 --   match_threshold: 0.7,
 --   match_count: 10
 -- });
